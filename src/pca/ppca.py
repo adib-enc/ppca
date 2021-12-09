@@ -37,7 +37,7 @@ class PPCA(object):
         [w, mu, sigma] = [self.w, self.mu, self.sigma]
         y = w.dot(x) + mu
         if noise:
-            for i in xrange(y.shape[1]):
+            for i in range(y.shape[1]):
                 e = np.random.normal(0, sigma, y.shape[0])
                 y[:, i] += e
         return y
@@ -46,7 +46,7 @@ class PPCA(object):
         m = inv(tr(w).dot(w) + sigma * np.eye(w.shape[1]))
         mw = m.dot(tr(w))
         ll = 0.0
-        for i in xrange(self.n):
+        for i in range(self.n):
             yi = self.y[:, i][:, np.newaxis]
             yyi = yi - mu
             xi = mw.dot(yyi)
@@ -71,13 +71,13 @@ class PPCA(object):
 
         yy = self.y - mu
         s = self.n**-1 * yy.dot(tr(yy))
-        for i in xrange(maxit):
+        for i in range(maxit):
             m = inv(tr(w).dot(w) + sigma * np.eye(self.q))
             t = inv(sigma * np.eye(self.q) + m.dot(tr(w)).dot(s).dot(w))
             w_new = s.dot(w).dot(t)
             sigma_new = self.p**-1 * np.trace(s - s.dot(w).dot(m).dot(tr(w_new)))
             ll_new = self.__ell(w_new, mu, sigma_new)
-            print "{:3d}  {:.3f}".format(i + 1, ll_new)
+            print("{:3d}  {:.3f}".format(i + 1, ll_new))
             w = w_new
             sigma = sigma_new
             ll = ll_new

@@ -39,7 +39,9 @@ class BPPCA(object):
         [w, mu, sigma] = [q.w_mean, q.mu_mean, q.gamma_mean()**-1]
         y = w.dot(x) + mu[:, np.newaxis]
         if noise:
-            for i in xrange(y.shape[1]):
+            # deprecated at py3
+            # for i in range(y.shape[1]):
+            for i in range(y.shape[1]):
                 e = np.random.normal(0, sigma, y.shape[0])
                 y[:, i] += e
         return y
@@ -50,7 +52,7 @@ class BPPCA(object):
         return self.n**-1 * d.dot(d)
 
     def fit_vb(self, maxit=20):
-        for i in xrange(maxit):
+        for i in range(maxit):
             self.update()
 
     def update(self):
@@ -70,7 +72,7 @@ class BPPCA(object):
         q = self.q_dist
         # cov
         x_cov = np.zeros((self.q, self.q))
-        for n in xrange(self.n):
+        for n in range(self.n):
             x = q.x_mean[:, n]
             x_cov += x[:, np.newaxis].dot(np.array([x]))
         q.w_cov = np.diag(q.alpha_a / q.alpha_b) + q.gamma_mean() * x_cov
@@ -98,7 +100,7 @@ class BPPCA(object):
         q.gamma_b = self.hyper.gamma_b
         w = q.w_mean
         ww = tr(w).dot(w)
-        for n in xrange(self.n):
+        for n in range(self.n):
             y = self.y[:, n]
             x = q.x_mean[:, n]
             q.gamma_b += y.dot(y) + q.mu_mean.dot(q.mu_mean)
