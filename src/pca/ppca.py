@@ -5,6 +5,8 @@ import ipdb
 
 
 class PPCA(object):
+    logs = []
+
     def __init__(self, q=2, sigma=1.0):
         self.q = q
         self.prior_sigma = sigma
@@ -17,6 +19,8 @@ class PPCA(object):
             [self.w, self.mu, self.sigma] = self.__fit_em()
         else:
             [self.w, self.mu, self.sigma] = self.__fit_ml()
+        
+        return self
 
     def transform(self, y=None):
         if y is None:
@@ -41,6 +45,27 @@ class PPCA(object):
                 e = np.random.normal(0, sigma, y.shape[0])
                 y[:, i] += e
         return y
+
+    def ell(self, w, mu, sigma, norm=True):
+        m = inv(tr(w).dot(w) + sigma * np.eye(w.shape[1]))
+        mw = m.dot(tr(w))
+        ll = 0.0
+        for i in range(self.n):
+            yi = self.y[:, i][:, np.newaxis]
+            yyi = yi - mu
+            xi = mw.dot(yyi)
+            xxi = sigma * m + xi.dot(tr(xi))
+            ll += 0.5 * np.trace(xxi)
+            if sigma > 1e-5:
+                ll += (2 * sigma)**-1 * float(tr(yyi).dot(yyi))
+                ll -= sigma**-1 * float(tr(xi).dot(tr(w)).dot(yyi))
+                ll += (2 * sigma)**-1 * np.trace(tr(w).dot(w).dot(xxi))
+        if sigma > 1e-5:
+            ll += 0.5 * self.n * self.p * np.log(sigma)
+        ll *= -1.0
+        if norm:
+            ll /= float(self.n)
+        return ll
 
     def __ell(self, w, mu, sigma, norm=True):
         m = inv(tr(w).dot(w) + sigma * np.eye(w.shape[1]))
@@ -77,7 +102,11 @@ class PPCA(object):
             w_new = s.dot(w).dot(t)
             sigma_new = self.p**-1 * np.trace(s - s.dot(w).dot(m).dot(tr(w_new)))
             ll_new = self.__ell(w_new, mu, sigma_new)
-            print("{:3d}  {:.3f}".format(i + 1, ll_new))
+
+            log = "{:3d}  {:.3f}".format(i + 1, ll_new)
+            self.logs.append(log)
+            # print("{:3d}  {:.3f}".format(i + 1, ll_new))
+
             w = w_new
             sigma = sigma_new
             ll = ll_new
